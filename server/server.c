@@ -9,13 +9,18 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "../functions/paliandrome.h"
+
+int paliandrom(){
+
+}
 
 
 int main(){
     struct sockaddr_in client, server;
     int client_conn, client_size, sock_fd;
 
-    char buff_one[10] = "",buff_two[10] = "";
+    char buff_one[50] = "",buff_two[50] = "";
 
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -46,16 +51,32 @@ int main(){
             exit(0);
         }
 
-        // if(strcmp(buff_one, "end") == 0){
-        //     break;
-        // }
+        if(strstr(buff_one, "paliandrom(") != NULL){
 
-        printf("\nClient : \t%s", buff_one);
-        printf("\nServer : \t");
-        fgets(buff_two, sizeof(buff_two), stdin);
-        send(client_conn, buff_two, sizeof(buff_two), 0);
-        if(strcmp(buff_two, "end") == 0){
+            int n = 11;
+            int num = 0;
+
+            while(buff_one[n] != ')'){
+                num = (num * 10) + (buff_one[n] - '0');
+                n++;
+            }
+            printf("%d", num);
+            int flag = pal_fun(num);
+            printf("%d", flag);
+            if(flag == 1) strcpy(buff_two, "pal");
+            else strcpy(buff_two, "!pal");
+            send(client_conn, buff_two, sizeof(buff_two), 0);
+
+        }
+
+        else if(strcmp(buff_two, "end") == 0){
             break;
+        }
+        else{
+            printf("\nClient : \t%s", buff_one);
+            printf("\nServer : \t");
+            fgets(buff_two, sizeof(buff_two), stdin);
+            send(client_conn, buff_two, sizeof(buff_two), 0);
         }
     }
 

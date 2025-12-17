@@ -14,7 +14,7 @@ int main(){
     struct sockaddr_in client,server;
     int client_conn, client_size, sockfd;
     
-    char buff_cli[10] = "", buff_serv[10] = "";
+    char buff_cli[50] = "", buff_serv[50] = "";
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
