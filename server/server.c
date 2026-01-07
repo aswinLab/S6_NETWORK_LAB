@@ -11,10 +11,6 @@
 #include <arpa/inet.h>
 #include "../functions/paliandrome.h"
 
-int paliandrom(){
-
-}
-
 
 int main(){
     struct sockaddr_in client, server;
@@ -61,10 +57,15 @@ int main(){
                 n++;
             }
             printf("%d", num);
-            int flag = pal_fun(num);
-            printf("%d", flag);
-            if(flag == 1) strcpy(buff_two, "pal");
-            else strcpy(buff_two, "!pal");
+            char* msg = pal_fun(num);
+            printf("%s", msg);
+            // if(flag == 1) {
+            //     strcpy(buff_two, "pal");
+            // }
+            // else if(flag == -1) { 
+            //     strcpy(buff_two, "!pal");
+            // }
+            strcpy(buff_two, msg);
             send(client_conn, buff_two, sizeof(buff_two), 0);
 
         }
