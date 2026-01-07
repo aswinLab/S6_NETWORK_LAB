@@ -19,9 +19,9 @@ int pal_fun(int num){
     if( rev == num ){
         return 1;
     }
-
-    return -1;
-
+    else{
+        return -1;
+    }
 }
 
 #endif
