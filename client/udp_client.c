@@ -1,53 +1,55 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#define PORT 5000
-#define MAXLINE 1000
 
-int main(){
 
-        struct sockaddr_in server, client;
-        int sockfd, cli_len;
-        char buffer[MAXLINE];
+#define PORT 9090
+#define BUF_SIZE 1024
 
-        sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-        cli_len = sizeof(client);
+int main() {
+    int sockfd;
+    char buffer[BUF_SIZE];
 
-        server.sin_addr.s_addr = htonl(INADDR_ANY);
-        server.sin_port = htonl(PORT);
-        server.sin_family = AF_INET;
 
-        if(sockfd < 0){
-            perror("Socket failed");
-            exit(0);
-        }
-        
-        while(connect(sockfd, (struct sockaddr *) &server, sizeof(server))<0){
-            printf("Attempting connection again in...10 seconds\n");
-            sleep(10);
-        }
+    struct sockaddr_in server;
+    socklen_t server_len = sizeof(server);
 
-        printf("Connection is established with server\n");
 
-        for(;;){
-            printf("Client :");
-            fgets(buffer, sizeof(buffer), stdin);
-            sendto(sockfd, buffer, sizeof(buffer), 0,(struct sockaddr *) &server, sizeof(server));
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("socket");
+        exit(1);
+    }
 
-            bzero(buffer, sizeof(buffer));
 
-            int n = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &server, &server);
+    memset(&server, 0, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-            buffer[n] = '\0';
 
-            printf("Server : ");
-            puts(buffer);
+    printf("Enter message: ");
+    fgets(buffer, BUF_SIZE, stdin);
 
-        }
+
+    sendto(sockfd, buffer, strlen(buffer), 0,
+    (struct sockaddr *)&server, server_len);
+
+
+    printf("Waiting for server reply...\n");
+
+
+    int nbytes = recvfrom(sockfd, buffer, BUF_SIZE, 0,
+    (struct sockaddr *)&server, &server_len);
+
+
+    buffer[nbytes] = '\0';
+    printf("Server replied: %s\n", buffer);
+
+
+    close(sockfd);
+    return 0;
 }
