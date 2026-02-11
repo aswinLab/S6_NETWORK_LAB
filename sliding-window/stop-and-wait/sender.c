@@ -1,5 +1,7 @@
 #include "sender.h"
 #include "protocol.h"
+#include <sys/socket.h>
+#include <stdio.h>
 
 
 static int sock;
@@ -13,21 +15,24 @@ sock = socket_fd;
 }
 
 
-void sender_send(int *data) {
-if (waiting) return;
+void sender_send(Packet *pkt) {
 
+    if (waiting) return;
 
-current.seq_no = next_seq;
-for (int i = 0; i < MAX_SIZE; i++)
-current.data[i] = data[i];
+    current = *pkt;
+    current.seq_no = next_seq;
 
+    send(sock, &current, sizeof(Packet), 0);
 
-send(sock, &current, sizeof(Packet), 0);
-waiting = 1;
+    printf("[SENDER] Sent seq %d\n", current.seq_no);
+
+    waiting = 1;
 }
 
 
+
 void sender_on_ack(Ack ack) {
+    printf("Recieved ack %d\n", ack.ack_no);
 if (ack.ack_no == next_seq) {
 waiting = 0;
 next_seq = (next_seq + 1) % SEQ_MODULO;

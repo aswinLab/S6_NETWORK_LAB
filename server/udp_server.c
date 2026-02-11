@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "../sliding-window/stop-and-wait/packet.h"
+#include "../sliding-window/stop-and-wait/reciever.h"
 
 
 #define PORT 9090
@@ -24,6 +26,7 @@ if (sockfd < 0) {
     exit(1);
 }
 
+receiver_init(sockfd);
 
 memset(&server, 0, sizeof(server));
 server.sin_family = AF_INET;
@@ -50,13 +53,15 @@ while (1) {
         continue;
     }
 
-
-    buffer[nbytes] = '\0';
-    printf("Received from client: %s\n", buffer);
+    connect(sockfd, (struct sockaddr*)&client, client_len);
 
 
-    sendto(sockfd, buffer, nbytes, 0,
-        (struct sockaddr *)&client, client_len);
+    Packet pkt;
+    memcpy(&pkt, buffer, sizeof(Packet));
+    receiver_on_packet(pkt);
+
+
+    send(sockfd, buffer, nbytes, 0);
     }
 
 
