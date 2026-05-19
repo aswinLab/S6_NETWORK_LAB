@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTP Client & Server Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --surface-color: #1a1d27;
+            --surface-color-hover: #232736;
+            --text-color: #a6accd;
+            --text-muted: #676e95;
+            --heading-color: #ffffff;
+            --accent-color: #82aaff;
+            --accent-glow: rgba(130, 170, 255, 0.2);
+            --border-color: #2b303e;
+            --code-bg: #141620;
+            
+            --kw-color: #c792ea; /* Keywords */
+            --fn-color: #82aaff; /* Functions */
+            --ty-color: #ffcb6b; /* Types */
+            --st-color: #c3e88d; /* Strings/Numbers */
+            --cm-color: #676e95; /* Comments */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            color: var(--heading-color);
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #82aaff 0%, #c792ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            color: var(--heading-color);
+            font-size: 2rem;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .tab-btn {
+            background: var(--surface-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: var(--surface-color-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--accent-glow);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .function-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .function-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            border-color: rgba(130, 170, 255, 0.3);
+        }
+
+        .function-header {
+            background: rgba(0,0,0,0.2);
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .function-header h3 {
+            margin: 0;
+            font-family: 'Fira Code', monospace;
+            color: var(--fn-color);
+            font-size: 1.2rem;
+        }
+
+        .function-desc {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .code-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            background: var(--border-color);
+        }
+
+        @media (max-width: 800px) {
+            .code-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .code-row {
+            display: contents;
+        }
+
+        .code-cell {
+            background: var(--code-bg);
+            padding: 12px 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #eeffff;
+            white-space: pre;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .code-cell .kw { color: var(--kw-color); }
+        .code-cell .ty { color: var(--ty-color); }
+        .code-cell .st { color: var(--st-color); }
+        .code-cell .fn { color: var(--fn-color); }
+        .code-cell .cm { color: var(--cm-color); font-style: italic; }
+
+        .expl-cell {
+            background: var(--surface-color);
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .code-row:hover .expl-cell {
+            background: var(--surface-color-hover);
+            border-left-color: var(--accent-color);
+            color: #fff;
+        }
+        
+        .code-row:hover .code-cell {
+            background: rgba(20, 22, 32, 0.7);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Syntax Highlighting Utilities */
+        .highlight:hover { filter: brightness(1.2); cursor: default; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>FTP Documentation</h1>
+            <p class="subtitle">A line-by-line breakdown of the lightweight C-based FTP Server and Client implementation.</p>
+        </header>
+
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('server')">Server Documentation</button>
+            <button class="tab-btn" onclick="switchTab('client')">Client Documentation</button>
+        </div>
+
+        <!-- SERVER SECTION -->
+        <div id="server" class="content-section active">
+            <h2>Server Core Logic (server.c)</h2>
+
+            <!-- send_msg -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">send_msg</span>(<span class="ty">int</span> fd, <span class="kw">const</span> <span class="ty">char</span> *msg)</h3>
+                    <div class="function-desc">Utility wrapper to safely send a null-terminated string over a socket descriptor.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">void</span> <span class="fn">send_msg</span>(<span class="ty">int</span> fd, <span class="kw">const</span> <span class="ty">char</span> *msg) {</div>
+                        <div class="expl-cell">Defines the function. `fd` is the client socket, `msg` is the string to send.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">send</span>(fd, msg, <span class="fn">strlen</span>(msg), <span class="st">0</span>);</div>
+                        <div class="expl-cell">Uses the `send` syscall. `strlen(msg)` calculates the exact bytes to transmit, excluding the null terminator.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">}</div>
+                        <div class="expl-cell">Ends the function.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- recv_line -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">int</span> <span class="fn">recv_line</span>(<span class="ty">int</span> fd, <span class="ty">char</span> *buf, <span class="ty">int</span> size)</h3>
+                    <div class="function-desc">Reads characters one-by-one from the socket until a newline ('\n') is encountered.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">int</span> i = <span class="st">0</span>; <span class="ty">char</span> c;</div>
+                        <div class="expl-cell">Initializes an index counter `i` and a temporary character buffer `c`.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> (i &lt; size - <span class="st">1</span>) {</div>
+                        <div class="expl-cell">Loops until the buffer is nearly full, leaving exactly 1 byte for the null terminator `\0`.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="ty">int</span> n = <span class="fn">recv</span>(fd, &amp;c, <span class="st">1</span>, <span class="st">0</span>);</div>
+                        <div class="expl-cell">Receives exactly 1 byte from the network socket into the variable `c`.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (n &lt;= <span class="st">0</span>) <span class="kw">return</span> n;</div>
+                        <div class="expl-cell">If `recv` returns 0 (client disconnected) or -1 (error), abort and return the error code immediately.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (c == <span class="st">'\n'</span>) <span class="kw">break</span>;</div>
+                        <div class="expl-cell">If the received character is a newline, the full line has been read. Break out of the loop.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    buf[i++] = c;</div>
+                        <div class="expl-cell">Store the character in the buffer and increment the index.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">}</div>
+                        <div class="expl-cell">End of the reading loop.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">buf[i] = <span class="st">'\0'</span>;</div>
+                        <div class="expl-cell">Append a null terminator to make the buffer a valid C string.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">return</span> i;</div>
+                        <div class="expl-cell">Returns the total number of bytes read (excluding the newline and null terminator).</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- safe_name -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="kw">const</span> <span class="ty">char</span> *<span class="fn">safe_name</span>(<span class="kw">const</span> <span class="ty">char</span> *name)</h3>
+                    <div class="function-desc">Security function to prevent Path Traversal attacks (e.g., stopping clients from requesting `../../etc/passwd`). Extracts only the filename.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">const</span> <span class="ty">char</span> *p = <span class="fn">strrchr</span>(name, <span class="st">'/'</span>);</div>
+                        <div class="expl-cell">Finds the last occurrence of a forward slash ('/') in the provided path.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">return</span> p ? p + <span class="st">1</span> : name;</div>
+                        <div class="expl-cell">If a slash was found, return the string starting immediately after it. Otherwise, the whole string is safe.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- do_list -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">do_list</span>(<span class="ty">int</span> client)</h3>
+                    <div class="function-desc">Handles the `LIST` command. Reads the `storage` directory and sends the list of files to the client.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">DIR</span> *dir = <span class="fn">opendir</span>(STORE);</div>
+                        <div class="expl-cell">Opens the "storage" directory to read its contents.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">if</span> (!dir) { <span class="fn">send_msg</span>(client, <span class="st">"ERR\n"</span>); <span class="kw">return</span>; }</div>
+                        <div class="expl-cell">If the directory fails to open, send an "ERR" message and abort.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">char</span> out[<span class="st">4096</span>] = <span class="st">""</span>;</div>
+                        <div class="expl-cell">Allocates a 4KB buffer to accumulate the names of the files.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> ((e = <span class="fn">readdir</span>(dir)))</div>
+                        <div class="expl-cell">Iterate through every entry in the directory.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (e-&gt;d_name[<span class="st">0</span>] != <span class="st">'.'</span>)</div>
+                        <div class="expl-cell">Ignore hidden files, the current directory (`.`), and the parent directory (`..`).</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">        { <span class="fn">strcat</span>(out, e-&gt;d_name); <span class="fn">strcat</span>(out, <span class="st">"\n"</span>); }</div>
+                        <div class="expl-cell">Append the valid filename and a newline to our `out` buffer.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">char</span> hdr[<span class="st">64</span>]; <span class="fn">sprintf</span>(hdr, <span class="st">"LIST %ld\n"</span>, (<span class="ty">long</span>)<span class="fn">strlen</span>(out));</div>
+                        <div class="expl-cell">Format the protocol header informing the client how many total bytes the file list will be.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send_msg</span>(client, hdr);</div>
+                        <div class="expl-cell">Send the `LIST <size>` header.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send</span>(client, out, <span class="fn">strlen</span>(out), <span class="st">0</span>);</div>
+                        <div class="expl-cell">Send the actual raw text block containing all the file names.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- do_get -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">do_get</span>(<span class="ty">int</span> client, <span class="kw">const</span> <span class="ty">char</span> *name)</h3>
+                    <div class="function-desc">Handles the `GET` command. Streams a requested file from the server down to the client.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell">name = <span class="fn">safe_name</span>(name);</div>
+                        <div class="expl-cell">Sanitize the requested filename to prevent path traversal.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">sprintf</span>(path, <span class="st">"%s/%s"</span>, STORE, name);</div>
+                        <div class="expl-cell">Construct the full server-side path, e.g., "storage/myfile.txt".</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">if</span> (<span class="fn">stat</span>(path, &amp;st) &lt; <span class="st">0</span>) { <span class="fn">send_msg</span>(client, <span class="st">"ERR\n"</span>); <span class="kw">return</span>; }</div>
+                        <div class="expl-cell">Check if the file exists and grab its metadata. Send `ERR` if it fails.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">sprintf</span>(hdr, <span class="st">"SIZE %ld\n"</span>, (<span class="ty">long</span>)st.st_size);</div>
+                        <div class="expl-cell">Format the protocol header specifying the exact filesize to expect.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send_msg</span>(client, hdr);</div>
+                        <div class="expl-cell">Send the `SIZE` header so the client knows how much to download.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">int</span> fd = <span class="fn">open</span>(path, O_RDONLY);</div>
+                        <div class="expl-cell">Open the file in Read-Only mode.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> ((n = <span class="fn">read</span>(fd, buf, BUF)) &gt; <span class="st">0</span>)</div>
+                        <div class="expl-cell">Read the file into the 1024-byte buffer iteratively until EOF is reached.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">send</span>(client, buf, n, <span class="st">0</span>);</div>
+                        <div class="expl-cell">Send the exact chunk of bytes just read over the socket to the client.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- do_put -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">do_put</span>(<span class="ty">int</span> client, <span class="kw">const</span> <span class="ty">char</span> *name, <span class="ty">long</span> size)</h3>
+                    <div class="function-desc">Handles the `PUT` command. Receives an uploaded file from the client and saves it to disk.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">int</span> fd = <span class="fn">open</span>(path, O_WRONLY | O_CREAT | O_TRUNC, <span class="st">0644</span>);</div>
+                        <div class="expl-cell">Opens/Creates a file in Write-Only mode. `O_TRUNC` empties it if it exists. Sets permissions to 644.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send_msg</span>(client, <span class="st">"READY\n"</span>);</div>
+                        <div class="expl-cell">Sends a handshake `READY` message telling the client to start beaming the raw bytes.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">long</span> rem = size;</div>
+                        <div class="expl-cell">Initializes a tracker for how many bytes are left to download.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> (rem &gt; <span class="st">0</span>) {</div>
+                        <div class="expl-cell">Loops until all expected bytes have been received.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="ty">int</span> chunk = rem &gt; BUF ? BUF : rem;</div>
+                        <div class="expl-cell">Calculates how much to read: max 1024 (BUF) or exactly whatever is remaining. Prevents reading past EOF into the next command.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="ty">int</span> n = <span class="fn">recv</span>(client, buf, chunk, <span class="st">0</span>);</div>
+                        <div class="expl-cell">Receive the calculated chunk from the network.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">write</span>(fd, buf, n);</div>
+                        <div class="expl-cell">Write those exact bytes directly into the file on disk.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    rem -= n;</div>
+                        <div class="expl-cell">Subtract the amount written from the remaining tracker.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">}</div>
+                        <div class="expl-cell">End of upload loop.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send_msg</span>(client, <span class="st">"OK\n"</span>);</div>
+                        <div class="expl-cell">Send `OK` to let the client know the upload succeeded.</div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- main loop -->
+             <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">handle_client</span>(<span class="ty">int</span> client)</h3>
+                    <div class="function-desc">The primary command loop for an active client connection. Parses text and routes to actions.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> (<span class="fn">recv_line</span>(client, line, BUF) &gt; <span class="st">0</span>) {</div>
+                        <div class="expl-cell">Continuously listens and reads one full string command (until '\n') from the client.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">sscanf</span>(line, <span class="st">"%s %s %ld"</span>, cmd, arg, &amp;fsize);</div>
+                        <div class="expl-cell">Parses the string into 3 parts: Command (`cmd`), Argument/Filename (`arg`), and Filesize (`fsize`).</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (!<span class="fn">strcmp</span>(cmd, <span class="st">"PUT"</span>)) <span class="fn">do_put</span>(client, arg, fsize);</div>
+                        <div class="expl-cell">Routes standard string commands like "PUT", "GET", "LIST" to their respective functions.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">else</span> <span class="kw">if</span> (!<span class="fn">strcmp</span>(cmd, <span class="st">"QUIT"</span>)) <span class="kw">break</span>;</div>
+                        <div class="expl-cell">If the client requests to QUIT, the loop breaks, closing the connection.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CLIENT SECTION -->
+        <div id="client" class="content-section">
+            <h2>Client Core Logic (client.c)</h2>
+
+            <!-- recv_all -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">int</span> <span class="fn">recv_all</span>(<span class="ty">int</span> fd, <span class="ty">char</span> *buf, <span class="ty">long</span> len)</h3>
+                    <div class="function-desc">Helper function to guarantee that exactly `len` bytes are received from the network. TCP doesn't guarantee full delivery in one go.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">long</span> got = <span class="st">0</span>;</div>
+                        <div class="expl-cell">Counter for bytes successfully received so far.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> (got &lt; len) {</div>
+                        <div class="expl-cell">Keep trying until we have collected the target amount of bytes.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="ty">int</span> n = <span class="fn">recv</span>(fd, buf + got, len - got, <span class="st">0</span>);</div>
+                        <div class="expl-cell">Read whatever is available on the socket directly into the buffer, offset by `got` so we don't overwrite earlier data. We ask for exactly what remains: `len - got`.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (n &lt;= <span class="st">0</span>) <span class="kw">return</span> -<span class="st">1</span>;</div>
+                        <div class="expl-cell">Connection died or errored out mid-transfer. Abort.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    got += n;</div>
+                        <div class="expl-cell">Increase the success counter by the chunk we just got.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">}</div>
+                        <div class="expl-cell">End of loop.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- do_list (Client) -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">void</span> <span class="fn">do_list</span>(<span class="ty">int</span> sock)</h3>
+                    <div class="function-desc">Client implementation of LIST. Requests the directory state and safely prints it.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">send</span>(sock, <span class="st">"LIST\n"</span>, <span class="st">5</span>, <span class="st">0</span>);</div>
+                        <div class="expl-cell">Sends the textual command to trigger the server's LIST logic.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">recv_line</span>(sock, buf, BUF);</div>
+                        <div class="expl-cell">Reads the first response line, expecting the `LIST <size>` format.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">sscanf</span>(buf, <span class="st">"LIST %ld"</span>, &amp;size);</div>
+                        <div class="expl-cell">Extracts the total byte size of the directory string the server is about to send.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="ty">char</span> *data = <span class="fn">malloc</span>(size + <span class="st">1</span>);</div>
+                        <div class="expl-cell">Dynamically allocates memory precisely matched to the incoming payload (plus null terminator).</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">recv_all</span>(sock, data, size);</div>
+                        <div class="expl-cell">Downloads the entire payload block in one guaranteed operation using our helper.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">data[size] = <span class="st">'\0'</span>; <span class="fn">printf</span>(<span class="st">"%s"</span>, data);</div>
+                        <div class="expl-cell">Terminates the string and prints the file list cleanly to the user's terminal.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell"><span class="fn">free</span>(data);</div>
+                        <div class="expl-cell">Frees the dynamically allocated memory to prevent memory leaks.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- main loop (Client) -->
+            <div class="function-card">
+                <div class="function-header">
+                    <h3><span class="ty">int</span> <span class="fn">main</span>()</h3>
+                    <div class="function-desc">Client entry point. Connects to server and provides an interactive terminal prompt.</div>
+                </div>
+                <div class="code-grid">
+                    <div class="code-row">
+                        <div class="code-cell"><span class="kw">while</span> (<span class="st">1</span>) {</div>
+                        <div class="expl-cell">Infinite loop to keep the interactive CLI running.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">printf</span>(<span class="st">"ftp> "</span>);</div>
+                        <div class="expl-cell">Prints the classic FTP prompt.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (!<span class="fn">fgets</span>(input, BUF, stdin)) <span class="kw">break</span>;</div>
+                        <div class="expl-cell">Reads user input from the keyboard (stdin). Breaks out if EOF (Ctrl+D) is detected.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    input[<span class="fn">strcspn</span>(input, <span class="st">"\n"</span>)] = <span class="st">'\0'</span>;</div>
+                        <div class="expl-cell">Strips the trailing newline character inserted by `fgets`.</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="fn">sscanf</span>(input, <span class="st">"%s %s"</span>, cmd, arg);</div>
+                        <div class="expl-cell">Parses out the base command (like GET) and its argument (like filename.txt).</div>
+                    </div>
+                    <div class="code-row">
+                        <div class="code-cell">    <span class="kw">if</span> (!<span class="fn">strcmp</span>(cmd, <span class="st">"PUT"</span>)) <span class="fn">do_put</span>(sock, arg);</div>
+                        <div class="expl-cell">Routes client-side execution to handle local file reading, chunking, and sending.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active class from buttons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(tabId).classList.add('active');
+            
+            // Highlight selected button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

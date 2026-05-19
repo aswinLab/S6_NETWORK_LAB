@@ -42,29 +42,19 @@ int main(){
 
 
     for(;;){
+        memset(buff_one, 0, sizeof(buff_one));
+        memset(buff_two, 0, sizeof(buff_two));
         if(recv(client_conn, buff_one, sizeof(buff_one), 0) < 0){
             perror("recv failed");
             exit(0);
         }
+        int num = 0;
+        char *extra;
 
-        if(strstr(buff_one, "paliandrom(") != NULL){
+        if(sscanf(buff_one, "paliandrom(%d)%c", &num, extra) == 1){
 
-            int n = 11;
-            int num = 0;
-
-            while(buff_one[n] != ')'){
-                num = (num * 10) + (buff_one[n] - '0');
-                n++;
-            }
-            printf("%d", num);
             char* msg = pal_fun(num);
             printf("%s", msg);
-            // if(flag == 1) {
-            //     strcpy(buff_two, "pal");
-            // }
-            // else if(flag == -1) { 
-            //     strcpy(buff_two, "!pal");
-            // }
             strcpy(buff_two, msg);
             send(client_conn, buff_two, sizeof(buff_two), 0);
 

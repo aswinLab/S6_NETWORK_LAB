@@ -1,70 +1,69 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include "../sliding-window/stop-and-wait/packet.h"
-#include "../sliding-window/stop-and-wait/reciever.h"
+#include <sys/socket.h>
 
-
-#define PORT 9090
-#define BUF_SIZE 1024
-
+#define PORT 8080
+#define BUFFER_SIZE 1024
 
 int main() {
-int sockfd;
-char buffer[BUF_SIZE];
 
+    int sockfd;
+    struct sockaddr_in server_addr, client_addr;
+    char buffer[BUFFER_SIZE];
+    socklen_t addr_len;
+    int n;
 
-struct sockaddr_in server, client;
-socklen_t client_len = sizeof(client);
-
-
-sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-if (sockfd < 0) {
-    perror("socket");
-    exit(1);
-}
-
-receiver_init(sockfd);
-
-memset(&server, 0, sizeof(server));
-server.sin_family = AF_INET;
-server.sin_addr.s_addr = INADDR_ANY;
-server.sin_port = htons(PORT);
-
-
-if (bind(sockfd, (struct sockaddr *)&server, sizeof(server)) < 0) {
-    perror("bind");
-    exit(1);
-}
-
-
-printf("UDP Server listening on port %d\n", PORT);
-
-
-while (1) {
-    int nbytes = recvfrom(sockfd, buffer, BUF_SIZE, 0,
-    (struct sockaddr *)&client, &client_len);
-
-
-    if (nbytes < 0) {
-        perror("recvfrom");
-        continue;
+    // 0) Create socket
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
     }
 
-    connect(sockfd, (struct sockaddr*)&client, client_len);
+    memset(&server_addr, 0, sizeof(server_addr));
+    memset(&client_addr, 0, sizeof(client_addr));
 
+    // 1) Bind IP and port
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
 
-    Packet pkt;
-    memcpy(&pkt, buffer, sizeof(Packet));
-    receiver_on_packet(pkt);
-
-
-    send(sockfd, buffer, nbytes, 0);
+    if (bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
     }
 
+    addr_len = sizeof(client_addr);
 
+    printf("UDP server listening on port %d...\n", PORT);
+
+    while (1) {
+
+        // 2) Read message from client
+        n = recvfrom(sockfd, buffer, BUFFER_SIZE - 1, 0,
+                     (struct sockaddr*)&client_addr, &addr_len);
+
+        if (n < 0) {
+            perror("recvfrom failed");
+            continue;
+        }
+
+        buffer[n] = '\0';
+
+        printf("Client says: %s\n", buffer);
+
+        // 3) Send message back to client
+        char reply[] = "Message received";
+
+        sendto(sockfd, reply, strlen(reply), 0,
+               (struct sockaddr*)&client_addr, addr_len);
+    }
+
+    // 4) Close socket (never reached unless server stops)
     close(sockfd);
+
     return 0;
 }
